@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>個人智慧食譜庫與決策輔助網站 — Smart Recipe Wiki</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <!-- =====================================================================
+       1. 頂部 Header 區：左側標題與副標題 ＋ 右上角固定放置「價格區間圖例卡」
+       ===================================================================== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand-block">
+        <span class="brand-eyebrow">🌿 Smart Recipe Wiki ｜ 2026 年 11 月台灣晚秋／初冬時令版</span>
+        <h1 class="site-title">個人智慧食譜庫與決策輔助網站</h1>
+        <p class="site-subtitle">
+          結合三層式 LLM 知識庫（<code>raw/</code> → <code>wiki/</code> → <code>pages/</code>），透過台灣當季盛產食材、預算區間與備料烹調總時間，幫您一秒決定今日菜單。
+        </p>
+      </div>
+
+      <aside class="price-legend-card" aria-label="價格區間圖例卡">
+        <div class="price-legend-title">
+          <span>💰 價格區間圖例卡</span>
+          <small>台灣超市／全聯基準</small>
+        </div>
+        <div class="price-legend-grid">
+          <div class="price-legend-item">
+            <span class="price-symbol">$</span>
+            <span>＝ 約 NT$ 100 左右</span>
+          </div>
+          <div class="price-legend-item">
+            <span class="price-symbol">$$</span>
+            <span>＝ 約 NT$ 500 左右</span>
+          </div>
+          <div class="price-legend-item">
+            <span class="price-symbol">$$$</span>
+            <span>＝ 約 NT$ 1,000 左右</span>
+          </div>
+          <div class="price-legend-item">
+            <span class="price-symbol">$$$$</span>
+            <span>＝ 約 NT$ 3,000 左右</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- =====================================================================
+         2. 頂部搜尋列（Search Bar）與 3. 分類導覽列（Category Filters）
+         ===================================================================== -->
+    <section class="controls-section" aria-label="食譜搜尋與分類篩選">
+      <div class="search-box-wrapper">
+        <div class="search-input-row">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            type="search"
+            id="recipe-search-input"
+            class="search-input"
+            placeholder="輸入料理名稱、食材（如：南瓜、高麗菜、老薑、牛肉、起司）或關鍵字即時過濾..."
+            aria-label="搜尋料理名稱、食材或關鍵字"
+          />
+          <button type="button" id="clear-search-btn" class="search-clear-btn">清除重置</button>
+        </div>
+        <div class="search-meta-bar">
+          <span id="active-filter-status">目前分類：【全部食譜】</span>
+          <span class="search-status-count">符合條件食譜：共 <strong id="visible-recipe-count">8</strong> 道</span>
+        </div>
+      </div>
+
+      <div class="category-filter-box">
+        <div class="category-filter-header">
+          <span class="category-filter-label">📂 料理分類導覽（支援一道菜多重分類標籤篩選）</span>
+          <span class="category-filter-hint">點擊分類即可過濾下方食譜總覽</span>
+        </div>
+        <div class="category-buttons" role="tablist" aria-label="10大料理分類與當季推薦">
+          <button type="button" class="category-btn active" data-category="ALL">全部食譜 (8)</button>
+          <button type="button" class="category-btn seasonal-filter-btn" data-category="SEASONAL">🌟 當季推薦 (6)</button>
+          <button type="button" class="category-btn" data-category="糕點類">糕點類</button>
+          <button type="button" class="category-btn" data-category="湯品類">湯品類</button>
+          <button type="button" class="category-btn" data-category="醃製類">醃製類</button>
+          <button type="button" class="category-btn" data-category="炸物類">炸物類</button>
+          <button type="button" class="category-btn" data-category="燉煮類">燉煮類</button>
+          <button type="button" class="category-btn" data-category="煎炒類">煎炒類</button>
+          <button type="button" class="category-btn" data-category="涼拌類">涼拌類</button>
+          <button type="button" class="category-btn" data-category="蒸煮類">蒸煮類</button>
+          <button type="button" class="category-btn" data-category="主食飯麵類">主食飯麵類</button>
+          <button type="button" class="category-btn" data-category="飲品甜湯類">飲品甜湯類</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         4. 🌟 當季推薦食譜專區（依當季推薦分數排序，預設僅顯示前 5 名，第 6 名起預設隱藏）
+         ===================================================================== -->
+    <section id="seasonal-section" class="section-block" aria-labelledby="seasonal-heading">
+      <div class="section-header">
+        <div>
+          <div class="section-title-group">
+            <h2 id="seasonal-heading" class="section-title">🌟 當季推薦食譜專區（11月台灣晚秋／初冬盛產）</h2>
+            <span class="section-badge">依當季推薦分數排序・預設顯示 Top 5</span>
+          </div>
+          <p class="section-desc">
+            本月盛產食材：南瓜、栗子、白蘿蔔、香菇、老薑、高麗菜、青蔥、台農57號地瓜、包心白菜。當令採買最鮮甜實惠！
+          </p>
+        </div>
+      </div>
+
+      <div id="seasonal-grid" class="recipe-grid">
+        <!-- Top 1: 96分 秋季栗子南瓜濃湯 -->
+        <article class="recipe-card seasonal-card">
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">
+                <span class="seasonal-rank-pill">Top 1｜96分</span>
+                🌱 當季：南瓜、栗子
+              </span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-chestnut-pumpkin-soup.html">秋季栗子南瓜濃湯</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">湯品類</span>
+              <span class="category-tag">燉煮類</span>
+            </div>
+            <p class="card-highlight">
+              融合 11 月盛產栗子與台灣金瓜的濃郁綿密，利用栗子天然澱粉增稠，免炒麵粉也能做出餐廳級法式濃湯。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：35 分鐘（備料15分+烹調20分）</span>
+            <a href="pages/20261116-chestnut-pumpkin-soup.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- Top 2: 92分 柚香蜂蜜醃白蘿蔔 -->
+        <article class="recipe-card seasonal-card">
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">
+                <span class="seasonal-rank-pill">Top 2｜92分</span>
+                🌱 當季：白蘿蔔
+              </span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-yuzu-pickled-radish.html">柚香蜂蜜醃白蘿蔔</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">醃製類</span>
+              <span class="category-tag">涼拌類</span>
+            </div>
+            <p class="card-highlight">
+              選用 11 月起進入產季的清甜白蘿蔔，免開火 20 分鐘即可完成酸甜爽脆的解膩常備菜，搭炸物烤肉絕配。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：20 分鐘（不含冷藏入味）</span>
+            <a href="pages/20261116-yuzu-pickled-radish.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- Top 3: 89分 麻油香菇雞湯 -->
+        <article class="recipe-card seasonal-card">
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">
+                <span class="seasonal-rank-pill">Top 3｜89分</span>
+                🌱 當季：香菇、老薑
+              </span>
+              <span class="price-badge" title="約 NT$ 500 左右">價格：<span>$$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-sesame-mushroom-chicken-soup.html">麻油香菇雞湯</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">湯品類</span>
+              <span class="category-tag">燉煮類</span>
+            </div>
+            <p class="card-highlight">
+              以耐高溫油與黑麻油「分段煸薑」，搭配 11 月肥厚新社冬菇與鮮嫩土雞腿，溫潤補身、湯頭甘甜不苦燥。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：50 分鐘（備料15分+烹調35分）</span>
+            <a href="pages/20261116-sesame-mushroom-chicken-soup.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- Top 4: 85分 高麗菜鮮肉水煎包 -->
+        <article class="recipe-card seasonal-card">
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">
+                <span class="seasonal-rank-pill">Top 4｜85分</span>
+                🌱 當季：高麗菜、青蔥
+              </span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-cabbage-pan-fried-buns.html">高麗菜鮮肉水煎包</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">煎炒類</span>
+              <span class="category-tag">主食飯麵類</span>
+            </div>
+            <p class="card-highlight">
+              把握 11 月平地初冬高麗菜與青蔥的脆甜多汁，掌握黃金麵粉水比例，平底鍋輕鬆煎出金黃冰花脆底。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：60 分鐘（備料35分+烹調25分）</span>
+            <a href="pages/20261116-cabbage-pan-fried-buns.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- Top 5: 82分 地瓜起司可樂餅 -->
+        <article class="recipe-card seasonal-card">
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">
+                <span class="seasonal-rank-pill">Top 5｜82分</span>
+                🌱 當季：台農57號地瓜
+              </span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-sweet-potato-cheese-croquette.html">地瓜起司可樂餅</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">炸物類</span>
+              <span class="category-tag">糕點類</span>
+            </div>
+            <p class="card-highlight">
+              選用 11 月進入盛產的台農 57 號黃金地瓜，鬆軟香甜的地瓜泥包入濃郁牽絲起司，外酥內綿超人氣。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：45 分鐘（備料25分+烹調20分）</span>
+            <a href="pages/20261116-sweet-potato-cheese-croquette.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- Top 6 (預設隱藏，點擊展開按鈕後顯示): 78分 清蒸鱸魚佐包心白菜 -->
+        <article class="recipe-card seasonal-card seasonal-extra is-hidden">
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">
+                <span class="seasonal-rank-pill">Top 6｜78分</span>
+                🌱 當季：包心白菜
+              </span>
+              <span class="price-badge" title="約 NT$ 500 左右">價格：<span>$$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-steamed-sea-bass-cabbage.html">清蒸鱸魚佐包心白菜</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">蒸煮類</span>
+            </div>
+            <p class="card-highlight">
+              以 11 月脆嫩甘甜的包心白菜鋪底，完整吸附金目鱸魚清蒸時滴落的鮮美魚汁，清爽低脂、一鍋出兩菜。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：30 分鐘（備料15分+烹調15分）</span>
+            <a href="pages/20261116-steamed-sea-bass-cabbage.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+      </div>
+
+      <div class="seasonal-toggle-wrapper">
+        <button type="button" id="seasonal-toggle-btn" class="seasonal-toggle-btn" aria-expanded="false">
+          ▼ 展開查看全部當季推薦（+1 道）
+        </button>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         5. 全部食譜總覽區（All Recipes Grid，支援即時搜尋與 10 大分類過濾）
+         ===================================================================== -->
+    <section id="all-recipes-section" class="section-block" aria-labelledby="all-recipes-heading">
+      <div class="section-header">
+        <div>
+          <div class="section-title-group">
+            <h2 id="all-recipes-heading" class="section-title">📖 全部食譜總覽</h2>
+            <span id="all-recipes-badge" class="section-badge">共 8 道完整食譜</span>
+          </div>
+          <p class="section-desc">
+            每張卡片均標示多重分類標籤、台灣超市價格區間（<code>$</code>～<code>$$$$</code>）、備料＋烹調總耗時與當季食材徽章。
+          </p>
+        </div>
+      </div>
+
+      <div id="all-recipes-grid" class="recipe-grid">
+        <!-- 1. 秋季栗子南瓜濃湯 -->
+        <article
+          class="recipe-card seasonal-card"
+          data-categories="湯品類,燉煮類"
+          data-seasonal="true"
+          data-seasonal-score="96"
+          data-keywords="秋季栗子南瓜濃湯 湯品類 燉煮類 南瓜 金瓜 栗子 甘栗 洋蔥 蒜頭 無鹽奶油 鮮奶 法式濃湯 $"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">🌟 當季食材：南瓜、栗子（96分）</span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-chestnut-pumpkin-soup.html">秋季栗子南瓜濃湯</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">湯品類</span>
+              <span class="category-tag">燉煮類</span>
+            </div>
+            <p class="card-highlight">
+              融合 11 月盛產栗子與台灣金瓜的濃郁綿密，利用栗子天然澱粉增稠，免炒麵粉也能做出餐廳級法式濃湯。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：35 分鐘（備料15分+烹調20分）</span>
+            <a href="pages/20261116-chestnut-pumpkin-soup.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 2. 柚香蜂蜜醃白蘿蔔 -->
+        <article
+          class="recipe-card seasonal-card"
+          data-categories="醃製類,涼拌類"
+          data-seasonal="true"
+          data-seasonal-score="92"
+          data-keywords="柚香蜂蜜醃白蘿蔔 醃製類 涼拌類 白蘿蔔 韓式柚子醬 蜂蜜 糯米醋 常備菜 解膩 小菜 免開火 $"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">🌟 當季食材：白蘿蔔（92分）</span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-yuzu-pickled-radish.html">柚香蜂蜜醃白蘿蔔</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">醃製類</span>
+              <span class="category-tag">涼拌類</span>
+            </div>
+            <p class="card-highlight">
+              選用 11 月起進入產季的清甜白蘿蔔，免開火 20 分鐘即可完成酸甜爽脆的解膩常備菜，搭炸物烤肉絕配。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：20 分鐘（不含冷藏入味）</span>
+            <a href="pages/20261116-yuzu-pickled-radish.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 3. 麻油香菇雞湯 -->
+        <article
+          class="recipe-card seasonal-card"
+          data-categories="湯品類,燉煮類"
+          data-seasonal="true"
+          data-seasonal-score="89"
+          data-keywords="麻油香菇雞湯 湯品類 燉煮類 香菇 冬菇 老薑 雞腿肉 黑麻油 苦茶油 米酒 高麗菜 枸杞 立冬 進補 $$"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">🌟 當季食材：香菇、老薑（89分）</span>
+              <span class="price-badge" title="約 NT$ 500 左右">價格：<span>$$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-sesame-mushroom-chicken-soup.html">麻油香菇雞湯</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">湯品類</span>
+              <span class="category-tag">燉煮類</span>
+            </div>
+            <p class="card-highlight">
+              以耐高溫油與黑麻油「分段煸薑」，搭配 11 月肥厚新社冬菇與鮮嫩土雞腿，溫潤補身、湯頭甘甜不苦燥。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：50 分鐘（備料15分+烹調35分）</span>
+            <a href="pages/20261116-sesame-mushroom-chicken-soup.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 4. 高麗菜鮮肉水煎包 -->
+        <article
+          class="recipe-card seasonal-card"
+          data-categories="煎炒類,主食飯麵類"
+          data-seasonal="true"
+          data-seasonal-score="85"
+          data-keywords="高麗菜鮮肉水煎包 煎炒類 主食飯麵類 高麗菜 青蔥 豬絞肉 中筋麵粉 老薑 米酒 芝麻 水煎包 $"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">🌟 當季食材：高麗菜、青蔥（85分）</span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-cabbage-pan-fried-buns.html">高麗菜鮮肉水煎包</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">煎炒類</span>
+              <span class="category-tag">主食飯麵類</span>
+            </div>
+            <p class="card-highlight">
+              把握 11 月平地初冬高麗菜與青蔥的脆甜多汁，掌握黃金麵粉水比例，平底鍋輕鬆煎出金黃冰花脆底。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：60 分鐘（備料35分+烹調25分）</span>
+            <a href="pages/20261116-cabbage-pan-fried-buns.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 5. 地瓜起司可樂餅 -->
+        <article
+          class="recipe-card seasonal-card"
+          data-categories="炸物類,糕點類"
+          data-seasonal="true"
+          data-seasonal-score="82"
+          data-keywords="地瓜起司可樂餅 炸物類 糕點類 台農57號地瓜 地瓜 番薯 起司 莫札瑞拉 洋蔥 無鹽奶油 鮮奶 雞蛋 麵包粉 點心 $"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">🌟 當季食材：台農57號地瓜（82分）</span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-sweet-potato-cheese-croquette.html">地瓜起司可樂餅</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">炸物類</span>
+              <span class="category-tag">糕點類</span>
+            </div>
+            <p class="card-highlight">
+              選用 11 月進入盛產的台農 57 號黃金地瓜，鬆軟香甜的地瓜泥包入濃郁牽絲起司，外酥內綿超人氣。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：45 分鐘（備料25分+烹調20分）</span>
+            <a href="pages/20261116-sweet-potato-cheese-croquette.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 6. 清蒸鱸魚佐包心白菜 -->
+        <article
+          class="recipe-card seasonal-card"
+          data-categories="蒸煮類"
+          data-seasonal="true"
+          data-seasonal-score="78"
+          data-keywords="清蒸鱸魚佐包心白菜 蒸煮類 包心白菜 大白菜 金目鱸魚 鱸魚 青蔥 老薑 米酒 蒸魚醬油 海鮮 $$"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="seasonal-badge">🌟 當季食材：包心白菜（78分）</span>
+              <span class="price-badge" title="約 NT$ 500 左右">價格：<span>$$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-steamed-sea-bass-cabbage.html">清蒸鱸魚佐包心白菜</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">蒸煮類</span>
+            </div>
+            <p class="card-highlight">
+              以 11 月脆嫩甘甜的包心白菜鋪底，完整吸附金目鱸魚清蒸時滴落的鮮美魚汁，清爽低脂、一鍋出兩菜。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：30 分鐘（備料15分+烹調15分）</span>
+            <a href="pages/20261116-steamed-sea-bass-cabbage.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 7. 蒜香奶油骰子牛 -->
+        <article
+          class="recipe-card"
+          data-categories="煎炒類"
+          data-seasonal="false"
+          data-seasonal-score="0"
+          data-keywords="蒜香奶油骰子牛 煎炒類 牛肉 板腱牛排 翼板 骰子牛 蒜頭 蒜片 無鹽奶油 黑胡椒 鐵板燒 居酒屋 快手菜 $$"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="regular-badge">🔥 常年快手主菜</span>
+              <span class="price-badge" title="約 NT$ 500 左右">價格：<span>$$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-garlic-butter-diced-beef.html">蒜香奶油骰子牛</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">煎炒類</span>
+            </div>
+            <p class="card-highlight">
+              金黃酥脆的炸蒜片搭配焦香無鹽奶油與多汁牛板腱，20 分鐘快速上桌的鐵板燒／居酒屋級下飯下酒主菜。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：20 分鐘（備料10分+烹調10分）</span>
+            <a href="pages/20261116-garlic-butter-diced-beef.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+
+        <!-- 8. 奶香Q彈鮮奶麻糬球 -->
+        <article
+          class="recipe-card"
+          data-categories="糕點類,飲品甜湯類"
+          data-seasonal="false"
+          data-seasonal-score="0"
+          data-keywords="奶香Q彈鮮奶麻糬球 糕點類 飲品甜湯類 鮮奶 牛奶 玉米澱粉 玉米粉 白砂糖 草莓粉 椰蓉粉 椰子粉 鮮奶麻糬 牛奶球 免烤箱 甜點 $"
+        >
+          <div>
+            <div class="card-top-meta">
+              <span class="regular-badge">🥛 常年零失敗甜點</span>
+              <span class="price-badge" title="約 NT$ 100 左右">價格：<span>$</span></span>
+            </div>
+            <h3 class="card-title">
+              <a href="pages/20261116-milk-mochi-balls.html">奶香Q彈鮮奶麻糬球</a>
+            </h3>
+            <div class="card-categories">
+              <span class="category-tag">糕點類</span>
+              <span class="category-tag">飲品甜湯類</span>
+            </div>
+            <p class="card-highlight">
+              只要一盒 250ml 鮮奶加玉米澱粉，免烤箱 15 分鐘小火慢攪成團，搓出裹滿草莓粉或椰蓉的雲朵級奶香小圓球。
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="time-info">⏱️ 總耗時：15 分鐘（備料3分+拌煮搓球12分）</span>
+            <a href="pages/20261116-milk-mochi-balls.html" class="card-link-btn">查看食譜 →</a>
+          </div>
+        </article>
+      </div>
+
+      <!-- 搜尋或分類無結果時的友善提示 -->
+      <div id="no-results-box" class="empty-state is-hidden">
+        <h3>找不到符合條件的食譜 🥣</h3>
+        <p>請嘗試其他食材關鍵字，或點擊「清除重置」查看全部 8 道食譜。</p>
+      </div>
+    </section>
+
+    <!-- =====================================================================
+         6. 共用食材交叉關聯速查表（同步自 wiki/index.md，輔助一材多用決策）
+         ===================================================================== -->
+    <section class="section-block" aria-labelledby="cross-ref-heading">
+      <div class="section-header">
+        <div>
+          <div class="section-title-group">
+            <h2 id="cross-ref-heading" class="section-title">🔄 共用食材交叉關聯表（一材多用決策輔助）</h2>
+            <span class="section-badge">同步自 wiki/index.md</span>
+          </div>
+          <p class="section-desc">買了一顆高麗菜、一條奶油或一把老薑不知道還能做什麼？點擊下方關聯食譜把剩餘食材輕鬆變佳餚：</p>
+        </div>
+      </div>
+
+      <div class="ingredient-matrix-card">
+        <div class="ingredient-chips-grid">
+          <div class="ingredient-group-item">
+            <div class="ingredient-name"><span>🥬 高麗菜</span><small>2 道關聯料理</small></div>
+            <div class="ingredient-links">
+              <a href="pages/20261116-cabbage-pan-fried-buns.html">高麗菜鮮肉水煎包</a>
+              <a href="pages/20261116-sesame-mushroom-chicken-soup.html">麻油香菇雞湯</a>
+            </div>
+          </div>
+
+          <div class="ingredient-group-item">
+            <div class="ingredient-name"><span>🫚 老薑</span><small>3 道關聯料理</small></div>
+            <div class="ingredient-links">
+              <a href="pages/20261116-sesame-mushroom-chicken-soup.html">麻油香菇雞湯</a>
+              <a href="pages/20261116-steamed-sea-bass-cabbage.html">清蒸鱸魚佐包心白菜</a>
+              <a href="pages/20261116-cabbage-pan-fried-buns.html">高麗菜鮮肉水煎包</a>
+            </div>
+          </div>
+
+          <div class="ingredient-group-item">
+            <div class="ingredient-name"><span>🌱 青蔥</span><small>2 道關聯料理</small></div>
+            <div class="ingredient-links">
+              <a href="pages/20261116-cabbage-pan-fried-buns.html">高麗菜鮮肉水煎包</a>
+              <a href="pages/20261116-steamed-sea-bass-cabbage.html">清蒸鱸魚佐包心白菜</a>
+            </div>
+          </div>
+
+          <div class="ingredient-group-item">
+            <div class="ingredient-name"><span>🧈 無鹽奶油</span><small>3 道關聯料理</small></div>
+            <div class="ingredient-links">
+              <a href="pages/20261116-chestnut-pumpkin-soup.html">秋季栗子南瓜濃湯</a>
+              <a href="pages/20261116-sweet-potato-cheese-croquette.html">地瓜起司可樂餅</a>
+              <a href="pages/20261116-garlic-butter-diced-beef.html">蒜香奶油骰子牛</a>
+            </div>
+          </div>
+
+          <div class="ingredient-group-item">
+            <div class="ingredient-name"><span>🥛 鮮奶</span><small>3 道關聯料理</small></div>
+            <div class="ingredient-links">
+              <a href="pages/20261116-chestnut-pumpkin-soup.html">秋季栗子南瓜濃湯</a>
+              <a href="pages/20261116-sweet-potato-cheese-croquette.html">地瓜起司可樂餅</a>
+              <a href="pages/20261116-milk-mochi-balls.html">奶香Q彈鮮奶麻糬球</a>
+            </div>
+          </div>
+
+          <div class="ingredient-group-item">
+            <div class="ingredient-name"><span>🧄 蒜頭 / 洋蔥</span><small>3 道關聯料理</small></div>
+            <div class="ingredient-links">
+              <a href="pages/20261116-garlic-butter-diced-beef.html">蒜香奶油骰子牛</a>
+              <a href="pages/20261116-chestnut-pumpkin-soup.html">秋季栗子南瓜濃湯</a>
+              <a href="pages/20261116-sweet-potato-cheese-croquette.html">地瓜起司可樂餅</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <strong>個人智慧食譜庫與決策輔助網站（Smart Recipe Wiki）</strong>
+        <span>｜三層式 LLM 知識庫架構（<code>raw/</code>・<code>wiki/</code>・<code>pages/</code>）</span>
+      </div>
+      <div>
+        <span>維護規範：請參閱專案根目錄 <code>AGENTS.md</code></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

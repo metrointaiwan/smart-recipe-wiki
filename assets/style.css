@@ -1,0 +1,1051 @@
+/* ==========================================================================
+   Smart Recipe Wiki — 個人智慧食譜庫與決策輔助網站
+   色彩主題：
+   1. 全站背景：Tor 經典深紫羅蘭色 (#2D1B4E，漸層 #261447 → #3B2063)
+   2. 深紫背景外層文字：純白 (#FFFFFF) 與 柔霧淺紫白 (#E2D9F3) 高對比不吃字
+   3. 所有卡片與表單：純白 (#FFFFFF) 與 冷淺灰 (#F8F9FA) 底色，深炭灰文字 (#1F2937)
+   4. 植萃綠強調：鼠尾草鮮綠 (#4CAF50) 與 植萃深綠 (#2E7D32)
+   5. 步驟關鍵字反白：柔和螢光薄荷綠底 (#DCFCE7) × 深森林綠粗體字 (#14532D)
+   ========================================================================== */
+
+:root {
+  /* Tor 經典深紫羅蘭背景與外層高對比文字 */
+  --bg-tor-purple: #2D1B4E;
+  --bg-tor-dark: #261447;
+  --bg-tor-light: #3B2063;
+  --outer-text-white: #FFFFFF;
+  --outer-text-lavender: #E2D9F3;
+
+  /* 卡片與表單白/灰高對比表面 */
+  --surface-white: #FFFFFF;
+  --surface-gray: #F8F9FA;
+  --surface-gray-alt: #F1F5F9;
+  --surface-gray-hover: #E2E8F0;
+  --border-gray: #D1D5DB;
+  --border-light: #E5E7EB;
+
+  /* 卡片內部文字（深炭灰高對比） */
+  --card-text-main: #1F2937;
+  --card-text-body: #374151;
+  --card-text-muted: #6B7280;
+
+  /* 植萃綠色系強調 */
+  --green-primary: #2E7D32;
+  --green-accent: #4CAF50;
+  --green-bright: #66BB6A;
+  --green-soft-bg: #E8F5E9;
+  --green-soft-border: #81C784;
+
+  /* 步驟文字螢光筆反白（Highlight） */
+  --highlight-bg: #DCFCE7;
+  --highlight-text: #14532D;
+
+  /* 陰影與圓角 */
+  --shadow-sm: 0 4px 12px rgba(15, 7, 30, 0.25);
+  --shadow-md: 0 10px 28px rgba(15, 7, 30, 0.38);
+  --shadow-green-glow: 0 12px 28px rgba(76, 175, 80, 0.28);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+  --transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-tor-purple);
+  background-image: linear-gradient(160deg, var(--bg-tor-dark) 0%, var(--bg-tor-purple) 50%, var(--bg-tor-light) 100%);
+  background-attachment: fixed;
+  color: var(--outer-text-white);
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.65;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   版面容器
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ==========================================================================
+   1. 頂部 Header 區（深紫背景上純白標題 ＋ 右上角白底價格區間圖例卡）
+   ========================================================================== */
+.site-header {
+  padding: 2rem 0 1.5rem;
+  border-bottom: 2px solid var(--green-accent);
+  background: rgba(26, 13, 48, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.brand-block {
+  flex: 1 1 460px;
+}
+
+.brand-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: var(--green-soft-bg);
+  color: var(--green-primary);
+  border: 1px solid var(--green-soft-border);
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 0.25rem 0.8rem;
+  border-radius: var(--radius-pill);
+  margin-bottom: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+.site-title {
+  color: var(--outer-text-white);
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.site-subtitle {
+  color: var(--outer-text-lavender);
+  font-size: 1rem;
+  max-width: 660px;
+}
+
+.site-subtitle code {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--outer-text-white);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* 右上角固定放置「價格區間圖例卡」（純白高對比卡片） */
+.price-legend-card {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 1.5px solid var(--border-gray);
+  border-top: 4px solid var(--green-accent);
+  border-radius: var(--radius-md);
+  padding: 0.95rem 1.2rem;
+  box-shadow: var(--shadow-sm);
+  min-width: 280px;
+  flex: 0 0 auto;
+}
+
+.price-legend-title {
+  color: var(--card-text-main);
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 0.4rem;
+}
+
+.price-legend-title small {
+  color: var(--card-text-muted);
+  font-weight: 600;
+}
+
+.price-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem 1rem;
+  font-size: 0.84rem;
+}
+
+.price-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--card-text-body);
+  font-weight: 500;
+}
+
+.price-symbol {
+  display: inline-block;
+  font-weight: 800;
+  color: var(--green-primary);
+  background-color: var(--green-soft-bg);
+  border: 1px solid var(--green-soft-border);
+  padding: 0.08rem 0.45rem;
+  border-radius: 6px;
+  font-family: "Segoe UI", Roboto, monospace;
+  min-width: 2.6rem;
+  text-align: center;
+}
+
+/* ==========================================================================
+   2. 頂部搜尋列（Search Bar）與 3. 分類導覽列（Category Filters）— 純白/冷淺灰底
+   ========================================================================== */
+.controls-section {
+  margin-top: 1.75rem;
+  margin-bottom: 2.25rem;
+}
+
+.search-box-wrapper {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px solid var(--border-gray);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.15rem;
+  transition: var(--transition);
+}
+
+.search-box-wrapper:focus-within {
+  border-color: var(--green-accent);
+  box-shadow: var(--shadow-green-glow);
+}
+
+.search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-icon {
+  font-size: 1.2rem;
+  color: var(--card-text-main);
+  user-select: none;
+}
+
+.search-input {
+  width: 100%;
+  background-color: var(--surface-gray);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  color: var(--card-text-main);
+  outline: none;
+  border: 1.5px solid var(--border-gray);
+  transition: var(--transition);
+}
+
+.search-input:focus {
+  background-color: var(--surface-white);
+  border-color: var(--green-accent);
+}
+
+.search-input::placeholder {
+  color: var(--card-text-muted);
+}
+
+.search-clear-btn {
+  background-color: var(--surface-gray);
+  color: var(--card-text-main);
+  border: 1.5px solid var(--border-gray);
+  padding: 0.68rem 1.05rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.search-clear-btn:hover {
+  background-color: var(--surface-gray-hover);
+  border-color: var(--green-primary);
+  color: var(--green-primary);
+}
+
+.search-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-size: 0.86rem;
+  color: var(--card-text-body);
+  font-weight: 500;
+}
+
+.search-status-count strong {
+  color: var(--green-primary);
+  font-weight: 800;
+}
+
+/* 分類導覽列 */
+.category-filter-box {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px solid var(--border-gray);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.category-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-filter-label {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--card-text-main);
+}
+
+.category-filter-hint {
+  font-size: 0.82rem;
+  color: var(--card-text-muted);
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.category-btn {
+  background-color: var(--surface-gray);
+  color: var(--card-text-main);
+  border: 1.5px solid var(--border-gray);
+  padding: 0.48rem 0.95rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.category-btn:hover {
+  background-color: var(--surface-white);
+  border-color: var(--green-accent);
+  color: var(--green-primary);
+  transform: translateY(-1px);
+}
+
+.category-btn.active {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  border-color: var(--green-primary);
+  box-shadow: 0 3px 10px rgba(46, 125, 50, 0.35);
+}
+
+.category-btn.seasonal-filter-btn {
+  border-color: var(--green-soft-border);
+  background-color: var(--green-soft-bg);
+  color: var(--green-primary);
+}
+
+.category-btn.seasonal-filter-btn.active {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  border-color: var(--green-primary);
+}
+
+/* ==========================================================================
+   深紫背景上的區塊標題（純白 #FFFFFF 與 柔霧淺紫白 #E2D9F3）
+   ========================================================================== */
+.section-block {
+  margin-bottom: 3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--green-accent);
+}
+
+.section-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  color: var(--outer-text-white);
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.section-badge {
+  background-color: var(--green-accent);
+  color: var(--surface-white);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.22rem 0.75rem;
+  border-radius: var(--radius-pill);
+}
+
+.section-desc {
+  color: var(--outer-text-lavender);
+  font-size: 0.94rem;
+  margin-top: 0.25rem;
+}
+
+.section-desc code {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--outer-text-white);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   4 & 5. 食譜卡片網格（純白底色 #FFFFFF × 深炭灰文字 #1F2937 × 亮植萃綠邊框強調）
+   ========================================================================== */
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1.35rem;
+}
+
+.recipe-card {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px solid var(--border-gray);
+  border-radius: var(--radius-md);
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.recipe-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--green-primary), var(--green-accent));
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.recipe-card.seasonal-card::before {
+  opacity: 1;
+}
+
+.recipe-card:hover {
+  border-color: var(--green-accent);
+  box-shadow: var(--shadow-green-glow), 0 0 0 2px var(--green-accent);
+  transform: translateY(-4px);
+}
+
+.recipe-card:hover::before {
+  opacity: 1;
+}
+
+.card-top-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+  flex-wrap: wrap;
+}
+
+/* 當季食材綠色徽章 */
+.seasonal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--green-soft-bg);
+  color: var(--green-primary);
+  border: 1px solid var(--green-soft-border);
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 0.24rem 0.7rem;
+  border-radius: var(--radius-pill);
+}
+
+.seasonal-rank-pill {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-pill);
+}
+
+.regular-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--surface-gray);
+  color: var(--card-text-body);
+  border: 1px solid var(--border-gray);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: var(--radius-pill);
+}
+
+.price-badge {
+  background-color: var(--surface-gray);
+  color: var(--card-text-main);
+  border: 1px solid var(--border-gray);
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.price-badge span {
+  color: var(--green-primary);
+}
+
+.card-title {
+  color: var(--card-text-main);
+  font-size: 1.28rem;
+  font-weight: 800;
+  margin-bottom: 0.55rem;
+  line-height: 1.35;
+}
+
+.card-title a:hover {
+  color: var(--green-primary);
+}
+
+.card-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.category-tag {
+  background-color: var(--surface-gray);
+  color: var(--card-text-body);
+  border: 1px solid var(--border-gray);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.16rem 0.6rem;
+  border-radius: 6px;
+}
+
+.card-highlight {
+  color: var(--card-text-main);
+  font-size: 0.94rem;
+  background-color: var(--surface-gray);
+  border-left: 4px solid var(--green-accent);
+  padding: 0.65rem 0.85rem;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 1rem;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.85rem;
+  color: var(--card-text-body);
+  gap: 0.5rem;
+}
+
+.time-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 700;
+  color: var(--card-text-main);
+}
+
+.card-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--green-primary);
+  font-weight: 800;
+  font-size: 0.86rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--green-soft-bg);
+  border: 1px solid var(--green-soft-border);
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.card-link-btn:hover {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  border-color: var(--green-primary);
+}
+
+/* 當季推薦區第 6 名起預設隱藏與展開按鈕 */
+.is-hidden {
+  display: none !important;
+}
+
+.seasonal-toggle-wrapper {
+  margin-top: 1.35rem;
+  text-align: center;
+}
+
+.seasonal-toggle-btn {
+  background-color: var(--surface-white);
+  color: var(--green-primary);
+  border: 2px solid var(--green-accent);
+  padding: 0.7rem 1.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.96rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.seasonal-toggle-btn:hover {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  border-color: var(--green-primary);
+  box-shadow: var(--shadow-green-glow);
+}
+
+/* 搜尋無結果提示 */
+.empty-state {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px dashed var(--border-gray);
+  border-radius: var(--radius-md);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.empty-state h3 {
+  color: var(--card-text-main);
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   共用食材交叉關聯速查區（首頁白底卡片）
+   ========================================================================== */
+.ingredient-matrix-card {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px solid var(--border-gray);
+  border-radius: var(--radius-md);
+  padding: 1.35rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.ingredient-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.85rem;
+}
+
+.ingredient-group-item {
+  background-color: var(--surface-gray);
+  border: 1px solid var(--border-gray);
+  border-left: 4px solid var(--green-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+}
+
+.ingredient-name {
+  font-weight: 800;
+  color: var(--card-text-main);
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ingredient-name small {
+  color: var(--card-text-muted);
+  font-weight: 600;
+}
+
+.ingredient-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.84rem;
+}
+
+.ingredient-links a {
+  color: var(--green-primary);
+  background-color: var(--surface-white);
+  border: 1px solid var(--green-soft-border);
+  padding: 0.18rem 0.55rem;
+  border-radius: 6px;
+  font-weight: 700;
+  transition: var(--transition);
+}
+
+.ingredient-links a:hover {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+}
+
+/* ==========================================================================
+   食譜獨立內頁 (`pages/*.html`) 專屬樣式
+   - 頂部精簡（無冗長時令大綠框，保留緊湊 4 格數據列）
+   - 左側食材 32% / 右側製作步驟 68%
+   - 放大步驟字體與行高 + <mark class="step-highlight"> 螢光薄荷綠反白
+   ========================================================================== */
+.recipe-page-nav {
+  margin: 1.5rem 0 1.15rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.back-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px solid var(--green-accent);
+  padding: 0.55rem 1.15rem;
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  font-size: 0.92rem;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.back-home-btn:hover {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  border-color: var(--green-primary);
+}
+
+.recipe-detail-card {
+  background-color: var(--surface-white);
+  color: var(--card-text-main);
+  border: 2px solid var(--border-gray);
+  border-top: 6px solid var(--green-accent);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem 2rem 2.25rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 2.5rem;
+}
+
+.recipe-detail-header {
+  border-bottom: 2px solid var(--green-accent);
+  padding-bottom: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.recipe-detail-title {
+  color: var(--card-text-main);
+  font-size: clamp(1.65rem, 2.8vw, 2.15rem);
+  font-weight: 800;
+  margin: 0.45rem 0 0.55rem;
+  line-height: 1.25;
+}
+
+/* 精簡緊湊的 4 格橫向核心數據列 */
+.recipe-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  background-color: var(--surface-gray);
+  border: 1.5px solid var(--border-gray);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 1rem;
+}
+
+.meta-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.meta-label {
+  font-size: 0.76rem;
+  color: var(--card-text-muted);
+  font-weight: 700;
+  margin-bottom: 0.1rem;
+}
+
+.meta-value {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--card-text-main);
+}
+
+.meta-value.green-text {
+  color: var(--green-primary);
+}
+
+/* 內頁主體比例：左側「食材清單」32%，右側「製作步驟」68% */
+.recipe-two-col {
+  display: grid;
+  grid-template-columns: 32% calc(68% - 2rem);
+  gap: 2rem;
+  align-items: start;
+  margin-top: 0.5rem;
+}
+
+.ingredients-panel {
+  background-color: var(--surface-gray);
+  border: 1.5px solid var(--border-gray);
+  border-radius: var(--radius-md);
+  padding: 1.35rem 1.4rem;
+}
+
+.panel-heading {
+  color: var(--card-text-main);
+  font-size: 1.28rem;
+  font-weight: 800;
+  padding-top: 0.25rem;
+  padding-bottom: 0.65rem;
+  margin-top: 0.15rem;
+  margin-bottom: 1.15rem;
+  border-bottom: 2px solid var(--green-accent);
+  line-height: 1.4;
+}
+
+.ingredient-subheading {
+  color: var(--green-primary);
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin: 0.95rem 0 0.45rem;
+}
+
+.ingredient-list {
+  list-style: none;
+}
+
+.ingredient-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.48rem 0;
+  border-bottom: 1px dashed var(--border-gray);
+  font-size: 0.95rem;
+  color: var(--card-text-body);
+}
+
+.ingredient-list li:last-child {
+  border-bottom: none;
+}
+
+.ing-amount {
+  font-weight: 800;
+  color: var(--card-text-main);
+  white-space: nowrap;
+}
+
+/* 右側製作步驟大區塊（68% 寬度、放大字體與行距、修正標題上方間距） */
+.steps-panel {
+  background-color: var(--surface-white);
+  padding-top: 0.15rem;
+}
+
+.step-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1.35rem;
+}
+
+.step-item {
+  background-color: var(--surface-gray);
+  border: 1.5px solid var(--border-gray);
+  border-left: 5px solid var(--green-accent);
+  border-radius: var(--radius-md);
+  padding: 22px 26px;
+  transition: var(--transition);
+}
+
+.step-item:hover {
+  border-color: var(--green-primary);
+  background-color: #FFFFFF;
+  box-shadow: 0 6px 16px rgba(46, 125, 50, 0.12);
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.step-num {
+  background-color: var(--green-primary);
+  color: var(--surface-white);
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.04em;
+}
+
+/* 放大步驟標題至 1.25rem 粗體 */
+.step-title {
+  color: var(--card-text-main);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+
+/* 放大步驟內文字體至 1.1rem、行高 1.85 */
+.step-item p {
+  color: var(--card-text-main);
+  font-size: 1.1rem;
+  line-height: 1.85;
+}
+
+/* 關鍵字「文字反白」標記（<mark class="step-highlight">） */
+mark.step-highlight,
+.step-highlight {
+  background-color: var(--highlight-bg);
+  color: var(--highlight-text);
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* 精簡版底部小撇步與延伸連結 */
+.tips-box {
+  margin-top: 1.5rem;
+  background-color: var(--surface-gray);
+  border: 1.5px solid var(--green-soft-border);
+  border-left: 5px solid var(--green-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.35rem;
+}
+
+.tips-box h3 {
+  color: var(--green-primary);
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.tips-box ul {
+  padding-left: 1.2rem;
+  color: var(--card-text-body);
+  font-size: 0.95rem;
+  line-height: 1.65;
+}
+
+.tips-box li {
+  margin-bottom: 0.25rem;
+}
+
+.tips-box a {
+  color: var(--green-primary);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   頁尾 Footer（深紫背景高對比淺字）
+   ========================================================================== */
+.site-footer {
+  margin-top: auto;
+  background-color: rgba(20, 9, 38, 0.7);
+  border-top: 2px solid var(--green-accent);
+  padding: 1.5rem 0;
+  color: var(--outer-text-lavender);
+  font-size: 0.88rem;
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-inner code {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--outer-text-white);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   響應式設計 (Responsive)
+   ========================================================================== */
+@media (max-width: 920px) {
+  .recipe-two-col {
+    grid-template-columns: 1fr;
+  }
+  .recipe-meta-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .price-legend-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .recipe-grid {
+    grid-template-columns: 1fr;
+  }
+  .recipe-meta-grid {
+    grid-template-columns: 1fr;
+  }
+  .search-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .recipe-detail-card {
+    padding: 1.25rem;
+  }
+  .step-item {
+    padding: 18px 20px;
+  }
+}
